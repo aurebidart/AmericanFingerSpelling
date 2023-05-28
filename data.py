@@ -1,80 +1,75 @@
-import pandas as pd
 import tensorflow as tf
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+import model as m
+import pandas as pd
+import numpy as np
 
-# Ruta de la carpeta que contiene los archivos Parquet distribuidos
-carpeta = '.'
+# Cargar los datos
+'''
+import csv
 
-# Cargar la tabla distribuida desde los archivos Parquet
-# Leer los archivos .parquet
-df1 = pd.read_parquet("105143404.parquet")
-df2 = pd.read_parquet("128822441.parquet")
+mapeo = {
+    " ": 0, "!": 1, "#": 2, "$": 3, "%": 4, "&": 5, "'": 6, "(": 7, ")": 8, "*": 9, "+": 10, ",": 11,
+    "-": 12, ".": 13, "/": 14, "0": 15, "1": 16, "2": 17, "3": 18, "4": 19, "5": 20, "6": 21, "7": 22,
+    "8": 23, "9": 24, ":": 25, ";": 26, "=": 27, "?": 28, "@": 29, "[": 30, "_": 31, "a": 32, "b": 33,
+    "c": 34, "d": 35, "e": 36, "f": 37, "g": 38, "h": 39, "i": 40, "j": 41, "k": 42, "l": 43, "m": 44,
+    "n": 45, "o": 46, "p": 47, "q": 48, "r": 49, "s": 50, "t": 51, "u": 52, "v": 53, "w": 54, "x": 55,
+    "y": 56, "z": 57, "~": 58
+}
 
-# Seleccionar las columnas que no contienen 'face' o 'pose'
-columns_to_delete_df = [col for col in df1.columns if 'face' in col.lower() or 'pose' in col.lower()]
+# Leer el archivo CSV
+lector_csv = pd.read_csv('../train.csv', usecols=['phrase'])
+y_train = []
 
-# Eliminar las columnas excluidas del DataFrame original
-df1 = df1.drop(columns=columns_to_delete_df)
-df2 = df2.drop(columns=columns_to_delete_df)
+print(lector_csv.values)
+# Iterar sobre cada fila del archivo CSV
+for fila in lector_csv.values:
 
+    datos_mapeados = []
+    for caracter in fila[0]:
+        datos_mapeados.append(mapeo[caracter])
 
-# Concatenar los DataFrames
-df_concatenado = pd.concat([df1, df2])
+    y_train.append(datos_mapeados)
 
-# Imprimir el DataFrame resultante
-#print(df_concatenado.tail())
+tensor = tf.ragged.constant(y_train)
+np.save('y_train.npy', tensor)
 
-df_concatenado.to_csv("kk.csv", index=True)
+tensor = tensor.to_tensor()
+np.save('y_train_dense.npy', tensor)
 
-# Combinar los DataFrames en uno solo
 
 '''
-# Acceder a un dato específico en el DataFrame
-fila = 0  # Índice de la fila
-columna = "frame"  # Nombre de la columna
+parquet_ids = [5414471, 105143404, 128822441, 149822653, 152029243, 169560558, 175396851, 234418913, 296317215]
 
-valor = df[columna][video_id_deseado]
+total = []
 
+for id in parquet_ids:
+    df = pd.read_parquet(f'./{id}.parquet')
 
-# Cargar el archivo CSV
-df_labels = pd.read_csv("train.csv")
-columns_to_delete_labels = [col for col in df_labels.columns if col != 'sequence_id' and col != 'phrase']
-labels = df_labels.drop(columns=columns_to_delete_labels) 
+    columns_to_delete_df = [col for col in df.columns if 'face' in col.lower() or 'pose' in col.lower()]
+    df = df.drop(columns=columns_to_delete_df)
+    df.fillna(0)
 
+    for i in df.index.unique():
+        if i == 1818239060 or i == 201728475 or i == 1547755601 or i == 120620494:
+            continue
 
-# merge de los dos DataFrames
-merged_df = df_reduc.merge(labels, left_index=True, right_on="sequence_id")
+        ar = []
 
-# Obtener los índices únicos
-unique_indices = merged_df.index.unique()
+        for frame in df.loc[i]['frame']:
+            fila = df.loc[i].loc[df.loc[i]['frame'] == frame]
+            columnas = fila.columns[1:]
+            ar.append(fila.loc[:, columnas].values.flatten())
 
-# Barajar los índices únicos
-shuffled_indices = tf.random.shuffle(unique_indices)
+        total.append(ar)
+        print(i)
+    
+    print(id)
 
-# Obtener el número total de índices únicos
-num_indices = tf.shape(unique_indices)[0]
+tensor = tf.ragged.constant(total)
+np.save('tensor_ragged_filled.npy', tensor)
+print(tensor.shape)
 
-# Obtener el número de índices para cada conjunto
-num_train = tf.cast(tf.cast(num_indices, tf.float32) * 0.7, tf.int32)
-num_val = tf.cast(tf.cast(num_indices, tf.float32) * 0.15, tf.int32)
-num_test = num_indices - num_train - num_val
-
-# Dividir los índices únicos en conjuntos de entrenamiento, validación y prueba
-train_indices = shuffled_indices[:num_train]
-val_indices = shuffled_indices[num_train:num_train + num_val]
-test_indices = shuffled_indices[num_train + num_val:]
-
-# Obtener los conjuntos de datos correspondientes a los índices
-train_df = merged_df.loc[merged_df.index.isin(train_indices)]
-val_df = merged_df.loc[merged_df.index.isin(val_indices)]
-test_df = merged_df.loc[merged_df.index.isin(test_indices)]
-
-# Verificar las formas de los conjuntos de datos resultantes
-print("Train shape:", train_df.shape)
-print("Validation shape:", val_df.shape)
-print("Test shape:", test_df.shape)
-
-# Guardar los conjuntos de datos en archivos CSV
-train_df.to_csv("net_train.csv", index=False)
-val_df.to_csv("net_val.csv", index=False)
-test_df.to_csv("net_test.csv", index=False)
-'''
+tensor = tensor.to_tensor()
+np.save('tensor_dense_filled.npy', tensor)
+print(tensor.shape)
