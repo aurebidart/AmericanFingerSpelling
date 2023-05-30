@@ -8,7 +8,7 @@ mp_holistic = mp.solutions.holistic
 
 import pandas as pd
 
-def create_dataframe(results, frame):
+def create_dataframe(results, frame): #Me faltó ordenar las columnas como los parquet que nos dan los de Google.
 
     sequence_id = 1  #Capaz lo podemos parametrizar, lo que quede mas cómodo.
     
