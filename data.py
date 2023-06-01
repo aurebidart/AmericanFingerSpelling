@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 # Cargar los datos
-'''
+
 import csv
 
 mapeo = {
@@ -18,25 +18,24 @@ mapeo = {
 }
 
 # Leer el archivo CSV
-lector_csv = pd.read_csv('../train.csv', usecols=['phrase'])
+lector_csv = pd.read_csv('train.csv', usecols=['phrase'])
 y_train = []
 
 print(lector_csv.values)
 # Iterar sobre cada fila del archivo CSV
 for fila in lector_csv.values:
 
-    datos_mapeados = []
+    phrase = [0] * 59
+    
+    print(fila[0])
     for caracter in fila[0]:
-        datos_mapeados.append(mapeo[caracter])
+        phrase[mapeo[caracter]] = 1
 
-    y_train.append(datos_mapeados)
+    y_train.append(phrase)
 
-tensor = tf.ragged.constant(y_train)
+tensor = np.asarray(y_train).astype('float32')
+print(tensor.shape)
 np.save('y_train.npy', tensor)
-
-tensor = tensor.to_tensor()
-np.save('y_train_dense.npy', tensor)
-
 
 '''
 parquet_ids = [5414471, 105143404, 128822441, 149822653, 152029243, 169560558, 175396851, 234418913, 296317215]
@@ -73,3 +72,4 @@ print(tensor.shape)
 tensor = tensor.to_tensor()
 np.save('tensor_dense_filled.npy', tensor)
 print(tensor.shape)
+'''
