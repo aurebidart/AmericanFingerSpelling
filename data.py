@@ -1,9 +1,10 @@
-import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-import model as m
+
 import csv
+import model as m
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 def crearTensorY(csv_path, output_name = 'y.npy'): #Podríamos agregarle un verbose para que muestre o no los prints.
 
