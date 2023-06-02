@@ -3,39 +3,34 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import model as m
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 
-y_train = np.load('y_train_dense.npy', allow_pickle=True)[:8996]
-
+y_train = np.load('y_train.npy', allow_pickle=True)
 x_train = np.load('tensor_dense_filled.npy', allow_pickle=True)
-print(y_train)
+#x_train_r = np.load('tensor_ragged_filled.npy', allow_pickle=True)
+
+y_test = np.load('y_test_dense.npy', allow_pickle=True)[:1000]
+x_test = np.load('tensor_test_dense_filled.npy', allow_pickle=True)
+
+x_test = tf.expand_dims(x_test, axis=0)
+
+#genera salida rara
+#x_test = np.expand_dims(x_test, axis=-1)
+
 
 # Crear una instancia de la clase MiRedNeuronal
-red_neuronal = m.MiRedNeuronal(num_frames=699, num_parametros=126, num_caracteres=59)
+red_neuronal = m.NeuralNetwork()
 
 # Obtener el resumen del modelo
-red_neuronal.resumen_modelo()
+red_neuronal.train(x_train, y_train)
 
-# Entrenar el modelo
-red_neuronal.entrenar(x_train, y_train, epochs=10, batch_size=32)
+prediccion = red_neuronal.predict(x_test[0])
 
-# Evaluar el modelo
-#red_neuronal.evaluar(x_test, y_test)
+#sumar los valores de prediccion
+suma = 0
+for i in range(len(prediccion)):
+    suma += prediccion[i]
 
-'''
-# Parámetros de la red
-vocab_size = 59  # Tamaño del vocabulario
-embedding_dim = 50  # Dimensión del embedding
-hidden_units = 256  # Unidades ocultas de la capa LSTM
-
-# Construcción del modelo
-model = m.build_model(vocab_size, embedding_dim, hidden_units)
-
-# Compilación del modelo
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
-
-# Resumen del modelo
-model.summary()
-
-# Callback de TensorBoard
-#tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir='./logs', update_freq='epoch')
-'''
+print(y_train[0])
+print(prediccion)
+print(suma)
